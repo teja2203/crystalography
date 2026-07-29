@@ -1,0 +1,446 @@
+/* ===== CrystalLens Controls ===== */
+
+/* Range Slider */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent-glow);
+    transition: transform var(--transition-fast);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
+input[type="range"]:focus {
+    outline: none;
+}
+
+/* Select */
+select {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none'%3E%3Cpath d='M3 5L6 8L9 5' stroke='%238b95b0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+/* Checkbox / Radio */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--accent);
+}
+
+/* Tooltip */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all var(--transition-fast);
+    border: 1px solid var(--border);
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Inline Math */
+.math-inline {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.math-block {
+    font-family: var(--font-mono);
+    display: block;
+    text-align: center;
+    padding: 16px;
+    margin: 12px 0;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    line-height: 1.8;
+    overflow-x: auto;
+}
+
+/* Step indicator */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all var(--transition-medium);
+}
+
+.step-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.step-dot.completed {
+    background: var(--success);
+}
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+}
+
+/* Key Highlight */
+.key-highlight {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--accent2-dim);
+    color: var(--accent2);
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.85em;
+}
+
+/* 3D Axis Widget */
+.axis-widget {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-md);
+    background: rgba(16, 18, 34, 0.6);
+    border: 1px solid var(--border);
+    pointer-events: none;
+    z-index: 5;
+}
+
+.axis-widget canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Measurement Tool */
+.measurement-overlay {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.measurement-line {
+    stroke: var(--accent2);
+    stroke-width: 2;
+    stroke-dasharray: 4 4;
+}
+
+.measurement-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    fill: var(--accent2);
+    font-weight: 600;
+}
+
+/* Animation Controls */
+.anim-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.anim-play-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: var(--text-inverse);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.anim-play-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.anim-play-btn.paused {
+    background: var(--accent2);
+}
+
+/* Slider with value display */
+.slider-with-value {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.slider-with-value input {
+    flex: 1;
+}
+
+.slider-value {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    min-width: 32px;
+    text-align: right;
+}
+
+/* Flashcard */
+.flashcard {
+    perspective: 1000px;
+    cursor: pointer;
+    height: 200px;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.flashcard-front {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+}
+
+.flashcard-back {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-accent);
+    transform: rotateY(180deg);
+}
+
+.flashcard-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+
+.flashcard-question {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.flashcard-answer {
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.flashcard-hint {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    margin-top: 16px;
+}
+
+/* Drag and Drop */
+.drag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+    min-height: 60px;
+    background: var(--bg-tertiary);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.drag-container.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+}
+
+.drag-item {
+    padding: 8px 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: grab;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+    user-select: none;
+}
+
+.drag-item:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+}
+
+.drag-item:active {
+    cursor: grabbing;
+}
+
+.drag-item.dragging {
+    opacity: 0.5;
+}
+
+.drag-item.placed {
+    border-color: var(--success);
+    background: var(--success-dim);
+}
+
+/* Comparison View */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.comparison-cell {
+    padding: 16px;
+    background: var(--bg-tertiary);
+    text-align: center;
+}
+
+.comparison-cell.header {
+    background: var(--bg-elevated);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.comparison-cell.label {
+    background: var(--bg-elevated);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    text-align: left;
+    font-weight: 500;
+}
+
+.comparison-cell.value {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+/* Interactive Drag Handle */
+.drag-handle {
+    width: 20px;
+    height: 32px;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--text-tertiary);
+}
+
+.drag-handle::before,
+.drag-handle::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Color picker for custom atom colors */
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.color-swatch:hover {
+    transform: scale(1.15);
+}
+
+.color-swatch.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
