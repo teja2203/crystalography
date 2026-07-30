@@ -566,12 +566,11 @@ function _buildAllContent() {
     // Module 14: Dislocations
     C[14] = {
         learn: [
-            { title: 'Dislocations',
-              paragraphs: ['Dislocations are line defects in crystals that enable plastic deformation at stresses far below theoretical strength.',
-              '<strong>Edge Dislocation:</strong> An extra half-plane of atoms inserted into the lattice. Characterized by a Burgers vector perpendicular to the dislocation line.',
-              '<strong>Screw Dislocation:</strong> A helical ramp of atomic planes. Burgers vector is parallel to the dislocation line.',
-              '<strong>Mixed Dislocation:</strong> Has both edge and screw components.',
-              'The Burgers vector b describes the magnitude and direction of lattice distortion. The energy of a dislocation is proportional to |b|^2.'],
+            { title: 'Dislocations & Plasticity',
+              paragraphs: ['Dislocations are line defects in crystals that enable plastic deformation at stresses far below theoretical shear strength.',
+              '<div class="miller-presets" style="margin:12px 0;"><button class="dislocation-select-btn btn btn-secondary" data-type="edge">Edge Dislocation</button><button class="dislocation-select-btn btn btn-secondary" data-type="screw">Screw Dislocation</button><button class="dislocation-select-btn btn btn-secondary" data-type="mixed">Mixed Dislocation</button></div>',
+              '<div id="dislocations-live-card"></div>',
+              'The <strong>Burgers vector b</strong> defines the magnitude and direction of lattice distortion. Dislocation line energy is proportional to <strong>|b|<sup>2</sup></strong>.'],
               notes: 'Dislocations explain why real crystals are 100-1000 times weaker than theoretically predicted. They are essential for understanding plasticity.' }
         ],
         math: [
@@ -592,12 +591,11 @@ function _buildAllContent() {
     // Module 15: Slip Systems
     C[15] = {
         learn: [
-            { title: 'Slip Systems',
+            { title: 'Slip Systems & Schmid Law',
               paragraphs: ['A slip system is a combination of a slip plane and a slip direction within that plane along which dislocation motion occurs most easily.',
-              '<strong>FCC:</strong> Slip plane {111}, slip direction <110>. 12 slip systems. Highly ductile.',
-              '<strong>BCC:</strong> Slip plane {110}, {112}, {123}, slip direction <111>. 48 slip systems possible, but only 5 are usually independent.',
-              '<strong>HCP:</strong> Slip plane (0001) basal, slip direction <11-20>. 3 slip systems. Limited ductility.',
-              'The number of independent slip systems determines whether a polycrystalline material can undergo general plastic deformation (Von Mises criterion: 5 required).'],
+              '<div class="miller-presets" style="margin:12px 0;"><button class="slip-select-btn btn btn-secondary" data-type="fcc">FCC {111}&lang;110&rang;</button><button class="slip-select-btn btn btn-secondary" data-type="bcc">BCC {110}&lang;111&rang;</button><button class="slip-select-btn btn btn-secondary" data-type="hcp">HCP (0001)&lang;11-20&rang;</button></div>',
+              '<div id="slip-live-card"></div>',
+              'According to <strong>Schmid&rsquo;s Law</strong>, plastic deformation occurs when the resolved shear stress &tau;<sub>RSS</sub> reaches the Critical Resolved Shear Stress (&tau;<sub>CRSS</sub>): <strong>&tau;<sub>RSS</sub> = &sigma; &middot; cos(&phi;) &middot; cos(&lambda;)</strong>.'],
               notes: 'FCC metals are ductile because they have 12 slip systems. HCP metals are often brittle because they have only 3-6.' }
         ],
         math: [

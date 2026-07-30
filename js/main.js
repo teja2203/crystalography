@@ -297,6 +297,16 @@ class CrystalLensApp {
             if (this.currentModuleId === 10 && tab === 'learn') {
                 this._setupDensityInteractions();
             }
+
+            // Bind Dislocations if on Module 14 Learn Tab
+            if (this.currentModuleId === 14 && tab === 'learn') {
+                this._setupDislocationsInteractions();
+            }
+
+            // Bind Slip Systems if on Module 15 Learn Tab
+            if (this.currentModuleId === 15 && tab === 'learn') {
+                this._setupSlipInteractions();
+            }
         }, 200);
     }
 
@@ -582,6 +592,137 @@ class CrystalLensApp {
             });
             updateDensityCalc(picker.value);
         }
+    }
+
+    _setupDislocationsInteractions() {
+        const updateDislocationInfo = (type) => {
+            const container = document.getElementById('dislocations-live-card');
+            if (!container) return;
+
+            const disData = {
+                edge: {
+                    title: 'Edge Dislocation Line Defect',
+                    geometry: 'Burgers Vector b &perp; Dislocation Line t',
+                    desc: 'Formed by inserting an extra half-plane of atoms into the crystal lattice. Atom positions above slip plane are compressed; below are in tension.',
+                    math: '&tau;_P = [2G / (1-&nu;)] &middot; exp(-2&pi; w / b)'
+                },
+                screw: {
+                    title: 'Screw Dislocation Line Defect',
+                    geometry: 'Burgers Vector b &parallel; Dislocation Line t',
+                    desc: 'Formed by shear stress cutting halfway through the crystal and shifting one half by 1 atomic distance, creating a continuous helical ramp.',
+                    math: 'E_screw = (G &middot; b²) / (4&pi;) &middot; ln(R / r_0)'
+                },
+                mixed: {
+                    title: 'Mixed Dislocation Line Defect',
+                    geometry: 'Burgers Vector b at arbitrary angle to Line t',
+                    desc: 'Exhibits both edge character (perpendicular component) and screw character (parallel component). Most real dislocations are mixed loops.',
+                    math: 'E_total = E_edge &middot; sin²(&theta;) + E_screw &middot; cos²(&theta;)'
+                }
+            };
+
+            const data = disData[type] || disData['edge'];
+
+            container.innerHTML = `
+                <div class="miller-derivation-card">
+                    <div class="miller-derivation-title">
+                        <span>${data.title}</span>
+                        <span class="miller-step-val" style="color:var(--accent);">${type.toUpperCase()}</span>
+                    </div>
+                    <div class="miller-step-list">
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Burgers Vector & Line Orientation:</div>
+                            <div class="miller-step-val"><strong>${data.geometry}</strong></div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Lattice Deformation Mechanism:</div>
+                            <div class="miller-step-val">${data.desc}</div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Governing Physics / Stress Formula:</div>
+                            <div class="miller-step-val"><strong>${data.math}</strong></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        document.querySelectorAll('.dislocation-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.dislocation-select-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+                btn.classList.add('active', 'btn-primary');
+                const type = btn.dataset.type;
+                updateDislocationInfo(type);
+                if (this.moduleScene && this.crystalVis) {
+                    this.crystalVis.createDislocationsDemo(this.moduleScene, type);
+                }
+            });
+        });
+
+        updateDislocationInfo('edge');
+    }
+
+    _setupSlipInteractions() {
+        const updateSlipInfo = (type) => {
+            const container = document.getElementById('slip-live-card');
+            if (!container) return;
+
+            const slipData = {
+                fcc: {
+                    title: 'FCC Slip System: {111} Planes, &lang;110&rang; Directions',
+                    count: '12 Independent Slip Systems (4 {111} planes &times; 3 &lang;110&rang; directions)',
+                    behavior: 'High ductility & formability (e.g. Copper, Aluminum, Gold). Von Mises criterion (&ge;5) easily satisfied.'
+                },
+                bcc: {
+                    title: 'BCC Slip System: {110} Planes, &lang;111&rang; Directions',
+                    count: '48 Possible Slip Systems ({110}, {112}, {123} planes &times; &lang;111&rang; directions)',
+                    behavior: 'High strength, temperature-dependent plastic yield (Ductile-to-Brittle Transition Temperature).'
+                },
+                hcp: {
+                    title: 'HCP Slip System: (0001) Basal Plane, &lang;11-20&rang; Directions',
+                    count: '3 Primary Basal Slip Systems (1 (0001) plane &times; 3 directions)',
+                    behavior: 'Limited room temperature ductility (e.g. Zinc, Titanium, Magnesium). Twinning required for strain accommodation.'
+                }
+            };
+
+            const data = slipData[type] || slipData['fcc'];
+
+            container.innerHTML = `
+                <div class="miller-derivation-card">
+                    <div class="miller-derivation-title">
+                        <span>${data.title}</span>
+                        <span class="miller-step-val" style="color:var(--accent);">${type.toUpperCase()}</span>
+                    </div>
+                    <div class="miller-step-list">
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Slip System Density & Multiplicity:</div>
+                            <div class="miller-step-val"><strong>${data.count}</strong></div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Schmid Factor & Plastic Behavior:</div>
+                            <div class="miller-step-val">${data.behavior}</div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Schmid&rsquo;s Law Equation:</div>
+                            <div class="miller-step-val"><strong>&tau;<sub>RSS</sub> = &sigma; &middot; cos(&phi;) &middot; cos(&lambda;)</strong> (&tau;<sub>CRSS</sub> trigger)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        document.querySelectorAll('.slip-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.slip-select-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+                btn.classList.add('active', 'btn-primary');
+                const type = btn.dataset.type;
+                updateSlipInfo(type);
+                if (this.moduleScene && this.crystalVis) {
+                    this.crystalVis.createSlipSystemsDemo(this.moduleScene, type);
+                }
+            });
+        });
+
+        updateSlipInfo('fcc');
     }
 
     _handlePracticeAnswer(optionEl) {

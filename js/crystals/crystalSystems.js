@@ -929,41 +929,52 @@ export class CrystalVisualizer {
     }
 
     /**
-     * Directions demo
+     * Directions demo — interactive vector generator for [u v w]
      */
-    createDirectionsDemo(sm) {
+    createDirectionsDemo(sm, u = 1, v = 1, w = 1) {
         const group = new THREE.Group();
-        const a = 1.5;
+        const a = 2.0;
 
-        const cell = sm.createUnitCell(a, 0x4488aa, 0.3);
+        const cell = sm.createUnitCell(a, 0x4488aa, 0.35);
         group.add(cell);
 
-        // [100] direction
-        const arrow100 = new THREE.ArrowHelper(
-            new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(-a/2, 0, 0),
-            a, 0x00d4ff, 0.2, 0.1
-        );
-        group.add(arrow100);
+        // Calculate direction vector
+        const dirVec = new THREE.Vector3(u, v, w);
+        const len = dirVec.length();
+        
+        if (len > 0) {
+            const dirNorm = dirVec.clone().normalize();
+            const origin = new THREE.Vector3(-a/2, -a/2, -a/2);
+            const arrowLen = Math.min(a * 1.5, (a / 2) * len);
 
-        // [110] direction
-        const arrow110 = new THREE.ArrowHelper(
-            new THREE.Vector3(1, 1, 0).normalize(),
-            new THREE.Vector3(-a/2, -a/2, 0),
-            a * Math.SQRT2 / 2, 0x34d399, 0.2, 0.1
-        );
-        group.add(arrow110);
+            const color = (u === 1 && v === 0 && w === 0) ? 0x00d4ff :
+                          (u === 1 && v === 1 && w === 0) ? 0x10b981 :
+                          (u === 1 && v === 1 && w === 1) ? 0xff528c : 0xffb84d;
 
-        // [111] direction
-        const arrow111 = new THREE.ArrowHelper(
-            new THREE.Vector3(1, 1, 1).normalize(),
-            new THREE.Vector3(-a/2, -a/2, -a/2),
-            a * Math.sqrt(3) / 2, 0xff6b9d, 0.2, 0.1
-        );
-        group.add(arrow111);
+            const arrow = new THREE.ArrowHelper(
+                dirNorm,
+                origin,
+                arrowLen,
+                color,
+                0.25,
+                0.12
+            );
+            group.add(arrow);
+
+            // Add endpoint sphere marker
+            const endPos = origin.clone().add(dirNorm.clone().multiplyScalar(arrowLen));
+            const endMarker = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1, 16, 16),
+                new THREE.MeshBasicMaterial({ color })
+            );
+            endMarker.position.copy(endPos);
+            group.add(endMarker);
+        }
 
         sm.add('directions', group);
-        sm.controls.autoRotate = true;
+        sm.camera.position.set(3.5, 2.8, 4.5);
+        sm.controls.target.set(0, 0, 0);
+        sm.controls.autoRotate = false;
         return group;
     }
 
@@ -1014,69 +1025,128 @@ export class CrystalVisualizer {
     }
 
     /**
-     * Dislocations demo
+     * Dislocations demo — Edge, Screw, and Mixed dislocations
      */
-    createDislocationsDemo(sm) {
+    createDislocationsDemo(sm, type = 'edge') {
         const group = new THREE.Group();
         const rows = 5;
         const cols = 5;
-        const a = 0.6;
-        const r = 0.15;
+        const a = 0.5;
+        const r = 0.14;
 
-        // Create atomic planes with an extra half-plane (edge dislocation)
-        for (let row = 0; row < rows; row++) {
-            const offsetX = row < 2 ? 0.3 : 0;
-            for (let col = 0; col < cols; col++) {
-                const x = (col - cols/2) * a + offsetX;
-                const z = (row - rows/2) * a;
-                const color = row === 2 ? 0xff4444 : 0x00d4ff;
-                const atom = this._quickAtom(new THREE.Vector3(x, 0, z), r, color);
-                group.add(atom);
+        if (type === 'screw') {
+            // Spiral / Helical Ramp Arrangement for Screw Dislocation
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const theta = (col / cols) * Math.PI * 2;
+                    const y = (row - rows/2) * a + (col / cols) * 0.4;
+                    const x = (col - cols/2) * a;
+                    const z = (row - rows/2) * a;
+                    const color = col === 2 ? 0xff528c : 0x00d4ff;
+                    const atom = this._quickAtom(new THREE.Vector3(x, y, z), r, color);
+                    group.add(atom);
+                }
             }
+            // Burgers vector parallel to dislocation line
+            const bArrow = new THREE.ArrowHelper(
+                new THREE.Vector3(0, 1, 0),
+                new THREE.Vector3(0, -1, 0),
+                1.5, 0xff528c, 0.2, 0.1
+            );
+            group.add(bArrow);
+        } else if (type === 'mixed') {
+            // Mixed Dislocation (Curved dislocation line)
+            for (let row = 0; row < rows; row++) {
+                const shiftX = Math.sin(row / rows * Math.PI) * 0.4;
+                for (let col = 0; col < cols; col++) {
+                    const x = (col - cols/2) * a + shiftX;
+                    const z = (row - rows/2) * a;
+                    const y = 0;
+                    const color = (col === 2) ? 0xffb84d : 0x00d4ff;
+                    const atom = this._quickAtom(new THREE.Vector3(x, y, z), r, color);
+                    group.add(atom);
+                }
+            }
+        } else {
+            // Edge Dislocation (Extra half-plane)
+            for (let row = 0; row < rows; row++) {
+                const offsetX = row < 2 ? 0.25 : 0;
+                for (let col = 0; col < cols; col++) {
+                    const x = (col - cols/2) * a + offsetX;
+                    const z = (row - rows/2) * a;
+                    const color = (row === 2) ? 0xef4444 : 0x00d4ff;
+                    const atom = this._quickAtom(new THREE.Vector3(x, 0, z), r, color);
+                    group.add(atom);
+                }
+            }
+            // Burgers vector perpendicular to line
+            const bArrow = new THREE.ArrowHelper(
+                new THREE.Vector3(1, 0, 0),
+                new THREE.Vector3(-1.2, 0, 0),
+                1.2, 0xef4444, 0.2, 0.1
+            );
+            group.add(bArrow);
         }
 
-        // Burgers vector indicator
-        const arrow = new THREE.ArrowHelper(
-            new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(-1.5, 0, 0),
-            1, 0xff4444, 0.2, 0.1
-        );
-        group.add(arrow);
-
-        // Label
         sm.add('dislocations', group);
-        sm.camera.position.set(0, 3, 4);
-        sm.controls.autoRotate = true;
+        sm.camera.position.set(3, 2.5, 4.5);
+        sm.controls.target.set(0, 0, 0);
+        sm.controls.autoRotate = false;
         return group;
     }
 
     /**
-     * Slip systems demo
+     * Slip systems demo — FCC {111}<110>, BCC {110}<111>, HCP (0001)<11-20>
      */
-    createSlipSystemsDemo(sm) {
+    createSlipSystemsDemo(sm, structType = 'fcc') {
         const group = new THREE.Group();
 
-        // FCC slip system: {111}<110>
-        const fccGroup = new THREE.Group();
-        this._addComparisonCell(sm, fccGroup, 'fcc', 0, 0x00d4ff);
+        if (structType === 'bcc') {
+            const bccGroup = new THREE.Group();
+            this._addComparisonCell(sm, bccGroup, 'bcc', 0, 0x10b981);
+            
+            // BCC {110} slip plane
+            const planeGeo = new THREE.PlaneGeometry(1.8, 1.8);
+            const planeMat = new THREE.MeshPhysicalMaterial({
+                color: 0x10b981, transparent: true, opacity: 0.3, side: THREE.DoubleSide
+            });
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.y = Math.PI / 4;
+            bccGroup.add(plane);
+            group.add(bccGroup);
+        } else if (structType === 'hcp') {
+            const hcpGroup = new THREE.Group();
+            this._addComparisonCell(sm, hcpGroup, 'hcp', 0, 0xffb84d);
 
-        // Add slip plane indication
-        const slipPlane = new THREE.Mesh(
-            new THREE.PlaneGeometry(1.8, 1.8),
-            new THREE.MeshPhysicalMaterial({
-                color: 0xff4444, transparent: true, opacity: 0.2, side: THREE.DoubleSide
-            })
-        );
-        const normal = new THREE.Vector3(1, 1, 1).normalize();
-        slipPlane.position.set(0.2, 0.2, 0.2);
-        slipPlane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-        fccGroup.add(slipPlane);
+            // HCP (0001) Basal plane
+            const planeGeo = new THREE.PlaneGeometry(1.8, 1.8);
+            const planeMat = new THREE.MeshPhysicalMaterial({
+                color: 0xffb84d, transparent: true, opacity: 0.35, side: THREE.DoubleSide
+            });
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = Math.PI / 2;
+            hcpGroup.add(plane);
+            group.add(hcpGroup);
+        } else {
+            // Default FCC {111} slip plane
+            const fccGroup = new THREE.Group();
+            this._addComparisonCell(sm, fccGroup, 'fcc', 0, 0x00d4ff);
 
-        group.add(fccGroup);
+            const planeGeo = new THREE.PlaneGeometry(1.8, 1.8);
+            const planeMat = new THREE.MeshPhysicalMaterial({
+                color: 0xff528c, transparent: true, opacity: 0.35, side: THREE.DoubleSide
+            });
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            const normal = new THREE.Vector3(1, 1, 1).normalize();
+            plane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+            fccGroup.add(plane);
+            group.add(fccGroup);
+        }
 
         sm.add('slip', group);
-        sm.camera.position.set(2, 2, 4);
-        sm.controls.autoRotate = true;
+        sm.camera.position.set(3, 2.5, 4.5);
+        sm.controls.target.set(0, 0, 0);
+        sm.controls.autoRotate = false;
         return group;
     }
 
