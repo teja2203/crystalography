@@ -469,10 +469,10 @@ function _buildAllContent() {
         learn: [
             { title: 'Theoretical Density',
               paragraphs: ['The theoretical density of a crystal can be calculated from its unit cell parameters.',
-              '<strong>rho = n x M / (N_A x V_cell)</strong>',
-              'Where:<br>\u2022 n = number of atoms per unit cell<br>\u2022 M = atomic mass (g/mol)<br>\u2022 N_A = Avogadro number (6.022 x 10^23 mol^-1)<br>\u2022 V_cell = volume of unit cell',
-              'This formula gives the maximum possible density (theoretical). Real density may be lower due to defects.',
-              'Example: Copper (FCC, a = 3.615 Angstrom, M = 63.55 g/mol)'],
+              '<strong>&rho; = n &middot; A / (V_c &middot; N_A)</strong>',
+              '<div style="margin:12px 0;"><label style="font-weight:600; font-size:0.85rem; color:var(--text-secondary);">Select Element to Calculate:</label><select id="density-element-picker" class="element-picker" style="margin-top:6px;"><option value="Cu">Copper (Cu) — FCC</option><option value="Fe">Alpha-Iron (Fe) — BCC</option><option value="Al">Aluminum (Al) — FCC</option><option value="Au">Gold (Au) — FCC</option><option value="W">Tungsten (W) — BCC</option></select></div>',
+              '<div id="density-live-card"></div>',
+              'Where:<br>&bull; n = number of atoms per unit cell<br>&bull; A = atomic weight (g/mol)<br>&bull; N_A = Avogadro number (6.022 &times; 10<sup>23</sup> mol<sup>-1</sup>)<br>&bull; V_c = volume of unit cell (a<sup>3</sup> for cubic)'],
               notes: 'Density calculations are a powerful way to verify crystal structures experimentally.' }
         ],
         math: [
@@ -543,9 +543,10 @@ function _buildAllContent() {
     C[13] = {
         learn: [
             { title: 'Point Defects',
-              paragraphs: ['Point defects are zero-dimensional defects that involve one or two atomic positions.',
-              '<strong>Types of Point Defects:</strong><br>\u2022 <strong>Vacancy:</strong> Missing atom from a regular lattice site<br>\u2022 <strong>Interstitial:</strong> Extra atom in a non-lattice position (interstice)<br>\u2022 <strong>Substitutional:</strong> Foreign atom replacing a host atom<br>\u2022 <strong>Frenkel Defect:</strong> Atom moved from lattice site to interstitial, creating a vacancy-interstitial pair<br>\u2022 <strong>Schottky Defect:</strong> Missing cation-anion pair (in ionic crystals)',
-              'Vacancies are always present in crystals at thermodynamic equilibrium. The concentration increases exponentially with temperature.'],
+              paragraphs: ['Point defects are zero-dimensional defects involving single atomic sites or interstitial voids.',
+              '<div class="miller-presets" style="margin:12px 0;"><button class="defect-select-btn btn btn-secondary" data-type="vacancy">Vacancy</button><button class="defect-select-btn btn btn-secondary" data-type="interstitial">Interstitial</button><button class="defect-select-btn btn btn-secondary" data-type="substitutional">Substitutional</button><button class="defect-select-btn btn btn-secondary" data-type="frenkel">Frenkel Pair</button><button class="defect-select-btn btn btn-secondary" data-type="schottky">Schottky Pair</button></div>',
+              '<div id="defects-live-card"></div>',
+              'Vacancies exist in thermodynamic equilibrium. The equilibrium vacancy concentration increases exponentially with temperature: <strong>N_v = N &middot; exp(-Q_v / k_B T)</strong>.'],
               notes: 'Point defects dramatically affect material properties: electrical conductivity, diffusion rates, color, and mechanical strength.' }
         ],
         math: [

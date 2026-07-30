@@ -968,9 +968,9 @@ export class CrystalVisualizer {
     }
 
     /**
-     * Defects demo
+     * Defects demo — interactive single defect visualization with step animation
      */
-    createDefectsDemo(sm) {
+    createDefectsDemo(sm, defectType = 'vacancy') {
         const group = new THREE.Group();
         
         // Ensure old animations are cleared
@@ -978,37 +978,38 @@ export class CrystalVisualizer {
             this.defectVisualizer.clear(sm);
         }
 
-        const spacing = 4.0; // Distance between lattices
+        // Single high-detail lattice centered at origin
+        const lattice = this.defectVisualizer.createPerfectLattice(sm, 1, 1, 0x00d4ff);
+        group.add(lattice);
 
-        // 1. Vacancy (Left)
-        const lattice1 = this.defectVisualizer.createPerfectLattice(sm, 1, 1, 0x00d4ff);
-        lattice1.position.x = -spacing;
-        group.add(lattice1);
+        // Execute selected defect type animation
         setTimeout(() => {
-            this.defectVisualizer.animateVacancy(sm, lattice1, new THREE.Vector3(0, 0, 0), 0x00d4ff);
-        }, 1000);
-
-        // 2. Interstitial (Center)
-        const lattice2 = this.defectVisualizer.createPerfectLattice(sm, 1, 1, 0x00d4ff);
-        lattice2.position.x = 0;
-        group.add(lattice2);
-        setTimeout(() => {
-            this.defectVisualizer.animateInterstitial(sm, lattice2, new THREE.Vector3(0.5, 0.5, 0.5), 0xff6b9d);
-        }, 1500);
-
-        // 3. Frenkel Defect (Right)
-        const lattice3 = this.defectVisualizer.createPerfectLattice(sm, 1, 1, 0x00d4ff);
-        lattice3.position.x = spacing;
-        group.add(lattice3);
-        setTimeout(() => {
-            this.defectVisualizer.animateFrenkel(sm, lattice3, new THREE.Vector3(0, 0, 0), 1.5);
-        }, 2000);
+            if (!this.defectVisualizer) return;
+            switch (defectType) {
+                case 'vacancy':
+                    this.defectVisualizer.animateVacancy(sm, lattice, new THREE.Vector3(0, 0, 0), 0x00d4ff);
+                    break;
+                case 'interstitial':
+                    this.defectVisualizer.animateInterstitial(sm, lattice, new THREE.Vector3(0.5, 0.5, 0.5), 0xff528c);
+                    break;
+                case 'substitutional':
+                    this.defectVisualizer.animateSubstitutional(sm, lattice, new THREE.Vector3(0, 0, 0), 0x10b981);
+                    break;
+                case 'frenkel':
+                    this.defectVisualizer.animateFrenkel(sm, lattice, new THREE.Vector3(0, 0, 0), 1.2);
+                    break;
+                case 'schottky':
+                    this.defectVisualizer.animateSchottky(sm, lattice, new THREE.Vector3(0, 0, 0), 1.0);
+                    break;
+                default:
+                    this.defectVisualizer.animateVacancy(sm, lattice, new THREE.Vector3(0, 0, 0), 0x00d4ff);
+            }
+        }, 400);
 
         sm.add('defects', group);
-        sm.camera.position.set(0, 3, 10);
+        sm.camera.position.set(3, 2.5, 5);
         sm.controls.target.set(0, 0, 0);
-        sm.controls.autoRotate = true;
-        sm.controls.autoRotateSpeed = 1.0;
+        sm.controls.autoRotate = false;
         return group;
     }
 

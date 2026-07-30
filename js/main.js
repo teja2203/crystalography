@@ -287,6 +287,16 @@ class CrystalLensApp {
             if ([4, 5, 6].includes(this.currentModuleId) && tab === 'learn') {
                 this._setupBuilderInteractions();
             }
+
+            // Bind Defects interactive selector if on Module 13 Learn Tab
+            if (this.currentModuleId === 13 && tab === 'learn') {
+                this._setupDefectsInteractions();
+            }
+
+            // Bind Density calculator if on Module 10 Learn Tab
+            if (this.currentModuleId === 10 && tab === 'learn') {
+                this._setupDensityInteractions();
+            }
         }, 200);
     }
 
@@ -435,6 +445,143 @@ class CrystalLensApp {
         if (buildFccBtn) buildFccBtn.addEventListener('click', () => handleBuild('fcc'));
         if (buildBccBtn) buildBccBtn.addEventListener('click', () => handleBuild('bcc'));
         if (buildHcpBtn) buildHcpBtn.addEventListener('click', () => handleBuild('hcp'));
+    }
+
+    _setupDefectsInteractions() {
+        const updateDefectInfo = (type) => {
+            const container = document.getElementById('defects-live-card');
+            if (!container) return;
+
+            const defectData = {
+                vacancy: {
+                    title: 'Vacancy Defect (Missing Atom)',
+                    desc: 'An atom is missing from its normal lattice position. Vacancies are intrinsic thermodynamic defects formed at high temperatures.',
+                    math: 'N_v / N = exp(-Q_v / k_B T)',
+                    effect: 'Enables atomic self-diffusion & creep deformation.'
+                },
+                interstitial: {
+                    title: 'Self-Interstitial Defect (Extra Atom)',
+                    desc: 'An extra atom squeezes into an interstitial void between regular lattice sites. Causes high local lattice strain.',
+                    math: 'N_i / N = exp(-Q_i / k_B T)',
+                    effect: 'High formation energy (Q_i > Q_v); creates compressive strain fields.'
+                },
+                substitutional: {
+                    title: 'Substitutional Impurity Defect',
+                    desc: 'A solute/foreign atom replaces a host matrix atom (e.g. Zinc in Copper to form Brass).',
+                    math: 'Hume-Rothery Rule: |r_solute - r_host| < 15%',
+                    effect: 'Solid solution strengthening; impedes dislocation movement.'
+                },
+                frenkel: {
+                    title: 'Frenkel Pair (Vacancy + Interstitial)',
+                    desc: 'A cation leaves its lattice site and moves into a nearby interstitial position, creating a vacancy-interstitial pair.',
+                    math: 'n = (N · N_i)^(1/2) · exp(-E_f / 2k_B T)',
+                    effect: 'Maintains overall stoichiometry and electrical neutrality.'
+                },
+                schottky: {
+                    title: 'Schottky Defect (Cation-Anion Vacancy Pair)',
+                    desc: 'A pair of oppositely charged ions (cation + anion) leave the crystal to maintain charge balance.',
+                    math: 'n = N · exp(-E_s / 2k_B T)',
+                    effect: 'Common in alkali halides (e.g., NaCl, KCl); lowers density.'
+                }
+            };
+
+            const data = defectData[type] || defectData['vacancy'];
+
+            container.innerHTML = `
+                <div class="miller-derivation-card">
+                    <div class="miller-derivation-title">
+                        <span>${data.title}</span>
+                        <span class="miller-step-val" style="color:var(--accent);">${type.toUpperCase()}</span>
+                    </div>
+                    <div class="miller-step-list">
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Physical Mechanism:</div>
+                            <div class="miller-step-val">${data.desc}</div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Thermodynamic / Rule Formula:</div>
+                            <div class="miller-step-val"><strong>${data.math}</strong></div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">Material Property Impact:</div>
+                            <div class="miller-step-val">${data.effect}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // Wire defect selector buttons
+        document.querySelectorAll('.defect-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.defect-select-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+                btn.classList.add('active', 'btn-primary');
+                const type = btn.dataset.type;
+                updateDefectInfo(type);
+                if (this.moduleScene && this.crystalVis) {
+                    this.crystalVis.createDefectsDemo(this.moduleScene, type);
+                }
+            });
+        });
+
+        // Trigger initial vacancy info
+        updateDefectInfo('vacancy');
+    }
+
+    _setupDensityInteractions() {
+        const updateDensityCalc = (elemKey) => {
+            const container = document.getElementById('density-live-card');
+            if (!container) return;
+
+            const elements = {
+                Cu: { name: 'Copper (Cu)', struct: 'FCC', n: 4, A: 63.55, a: 3.615, rhoLit: 8.94 },
+                Fe: { name: 'Alpha-Iron (Fe)', struct: 'BCC', n: 2, A: 55.85, a: 2.866, rhoLit: 7.87 },
+                Al: { name: 'Aluminum (Al)', struct: 'FCC', n: 4, A: 26.98, a: 4.049, rhoLit: 2.70 },
+                Au: { name: 'Gold (Au)', struct: 'FCC', n: 4, A: 196.97, a: 4.078, rhoLit: 19.30 },
+                W:  { name: 'Tungsten (W)', struct: 'BCC', n: 2, A: 183.84, a: 3.165, rhoLit: 19.25 }
+            };
+
+            const data = elements[elemKey] || elements['Cu'];
+            const aCm = data.a * 1e-8;
+            const Vc = Math.pow(aCm, 3);
+            const massCell = (data.n * data.A) / 6.022e23;
+            const rhoCalc = (massCell / Vc).toFixed(2);
+
+            container.innerHTML = `
+                <div class="miller-derivation-card">
+                    <div class="miller-derivation-title">
+                        <span>Theoretical Density Derivation — ${data.name}</span>
+                        <span class="miller-step-val">${rhoCalc} g/cm³</span>
+                    </div>
+                    <div class="miller-step-list">
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">1. Crystal Structure & Atoms per Cell (n):</div>
+                            <div class="miller-step-val">${data.struct} structure &rarr; n = <strong>${data.n} atoms/cell</strong></div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">2. Atomic Weight (A) & Unit Cell Edge (a):</div>
+                            <div class="miller-step-val">A = ${data.A} g/mol, a = ${data.a} Å = ${data.a} &times; 10<sup>-8</sup> cm</div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">3. Unit Cell Volume (V_c = a³):</div>
+                            <div class="miller-step-val">V_c = (${data.a} &times; 10<sup>-8</sup> cm)³ = ${(Vc * 1e24).toFixed(2)} &times; 10<sup>-24</sup> cm³</div>
+                        </div>
+                        <div class="miller-step-item">
+                            <div class="miller-step-label">4. Calculated Theoretical Density (&rho;):</div>
+                            <div class="miller-step-val">&rho; = (${data.n} &times; ${data.A}) / [6.022 &times; 10<sup>23</sup> &times; ${(Vc * 1e24).toFixed(2)} &times; 10<sup>-24</sup>] = <strong style="color:var(--accent);">${rhoCalc} g/cm³</strong> (Lit: ${data.rhoLit} g/cm³)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const picker = document.getElementById('density-element-picker');
+        if (picker) {
+            picker.addEventListener('change', (e) => {
+                updateDensityCalc(e.target.value);
+            });
+            updateDensityCalc(picker.value);
+        }
     }
 
     _handlePracticeAnswer(optionEl) {
