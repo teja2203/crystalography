@@ -5,6 +5,8 @@ import { buildModuleList, buildRoadmap, buildQuickGrid, renderModuleContent, get
 import { CrystalVisualizer } from './crystals/crystalSystems.js';
 import { QuizEngine } from './quiz/quizEngine.js';
 import { CrystalBuilder } from './animations/builder.js';
+import { MillerMath } from './math/millerMath.js';
+import { StepAnimator } from './animations/stepAnimator.js';
 import * as THREE from 'three';
 
 class CrystalLensApp {
@@ -271,8 +273,8 @@ class CrystalLensApp {
                 });
             }
 
-            // Bind Miller interactive elements if on Module 11 Learn Tab
-            if (this.currentModuleId === 11 && tab === 'learn') {
+            // Bind Miller interactive elements if on Module 11 Learn or Math Tab
+            if (this.currentModuleId === 11 && (tab === 'learn' || tab === 'math')) {
                 this._setupMillerInteractions();
             }
 
@@ -289,6 +291,75 @@ class CrystalLensApp {
     }
 
     _setupMillerInteractions() {
+        const updateDerivation = (h, k, l) => {
+            const intercepts = [
+                h !== 0 ? `a/${h}` : '∞',
+                k !== 0 ? `a/${k}` : '∞',
+                l !== 0 ? `a/${l}` : '∞'
+            ];
+            const recip = [
+                h !== 0 ? `${h}/a` : '0',
+                k !== 0 ? `${k}/a` : '0',
+                l !== 0 ? `${l}/a` : '0'
+            ];
+
+            const liveContainer = document.getElementById('miller-derivation-live');
+            if (liveContainer) {
+                liveContainer.innerHTML = `
+                    <div class="miller-derivation-card">
+                        <div class="miller-derivation-title">
+                            <span>Step-by-Step Derivation for (${h} ${k} ${l}) Plane</span>
+                            <span class="miller-step-val">(${h} ${k} ${l})</span>
+                        </div>
+                        <div class="miller-step-list">
+                            <div class="miller-step-item">
+                                <div class="miller-step-label">1. Intercepts on Axes (x, y, z):</div>
+                                <div class="miller-step-val">(${intercepts.join(', ')})</div>
+                            </div>
+                            <div class="miller-step-item">
+                                <div class="miller-step-label">2. Take Reciprocals:</div>
+                                <div class="miller-step-val">(${recip.join(', ')})</div>
+                            </div>
+                            <div class="miller-step-item">
+                                <div class="miller-step-label">3. Clear Fractions & Simplify:</div>
+                                <div class="miller-step-val">${h}, ${k}, ${l}</div>
+                            </div>
+                            <div class="miller-step-item">
+                                <div class="miller-step-label">4. Final Miller Index Notation:</div>
+                                <div class="miller-step-val"><strong>(${h} ${k} ${l})</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Also render in Math tab if StepAnimator container exists
+            const stepContainer = document.getElementById('miller-step-animator');
+            if (stepContainer) {
+                const animator = new StepAnimator('miller-step-animator', `Derivation of Plane (${h} ${k} ${l})`);
+                animator.setSteps([
+                    { html: `<strong>Step 1: Intercepts</strong><br>Plane crosses axes at x = ${intercepts[0]}, y = ${intercepts[1]}, z = ${intercepts[2]}` },
+                    { html: `<strong>Step 2: Reciprocals</strong><br>Invert intercepts: 1/x = ${recip[0]}, 1/y = ${recip[1]}, 1/z = ${recip[2]}` },
+                    { html: `<strong>Step 3: Simplify</strong><br>Smallest integer ratio: h = ${h}, k = ${k}, l = ${l}` },
+                    { html: `<strong>Step 4: Result</strong><br>Enclose in parentheses: <strong>(${h} ${k} ${l})</strong>` }
+                ]).render();
+            }
+        };
+
+        // Wire plane click in 3D scene
+        if (this.crystalVis && this.crystalVis.millerPlanes) {
+            this.crystalVis.millerPlanes.onPlaneClick = (h, k, l) => {
+                const hEl = document.getElementById('miller-h');
+                const kEl = document.getElementById('miller-k');
+                const lEl = document.getElementById('miller-l');
+                if (hEl) hEl.value = h;
+                if (kEl) kEl.value = k;
+                if (lEl) lEl.value = l;
+                updateDerivation(h, k, l);
+                this.crystalVis.millerPlanes.animatePlaneCreation(h, k, l);
+            };
+        }
+
         const animateBtn = document.getElementById('miller-animate-btn');
         if (animateBtn) {
             animateBtn.addEventListener('click', () => {
@@ -301,8 +372,8 @@ class CrystalLensApp {
                     return;
                 }
 
+                updateDerivation(h, k, l);
                 if (this.moduleScene && this.crystalVis.millerPlanes) {
-                    // Start the plane creation animation
                     this.crystalVis.millerPlanes.animatePlaneCreation(h, k, l);
                 }
             });
@@ -311,19 +382,26 @@ class CrystalLensApp {
         // Preset buttons
         document.querySelectorAll('.miller-preset-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const h = parseInt(e.target.dataset.h);
-                const k = parseInt(e.target.dataset.k);
-                const l = parseInt(e.target.dataset.l);
+                const h = parseInt(btn.dataset.h);
+                const k = parseInt(btn.dataset.k);
+                const l = parseInt(btn.dataset.l);
                 
-                document.getElementById('miller-h').value = h;
-                document.getElementById('miller-k').value = k;
-                document.getElementById('miller-l').value = l;
+                const hEl = document.getElementById('miller-h');
+                const kEl = document.getElementById('miller-k');
+                const lEl = document.getElementById('miller-l');
+                if (hEl) hEl.value = h;
+                if (kEl) kEl.value = k;
+                if (lEl) lEl.value = l;
                 
+                updateDerivation(h, k, l);
                 if (this.moduleScene && this.crystalVis.millerPlanes) {
                     this.crystalVis.millerPlanes.animatePlaneCreation(h, k, l);
                 }
             });
         });
+
+        // Trigger initial derivation for (1 1 1)
+        updateDerivation(1, 1, 1);
     }
 
     _setupCoordinationInteractions() {

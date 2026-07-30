@@ -594,6 +594,53 @@ input[type="radio"] {
     border-color: var(--border-accent);
 }
 
+/* Miller Derivation Live Card */
+.miller-derivation-card {
+    background: rgba(20, 22, 36, 0.7);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin: 14px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+}
+
+.miller-derivation-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.miller-step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.miller-step-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 0.88rem;
+}
+
+.miller-step-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    margin-bottom: 2px;
+}
+
+.miller-step-val {
+    font-family: var(--font-mono);
+    color: var(--accent-light);
+}
+
 /* Live Element Picker */
 .element-picker {
     width: 100%;

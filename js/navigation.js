@@ -496,8 +496,9 @@ function _buildAllContent() {
               paragraphs: ['Use the controls below to input Miller indices (h, k, l) and watch the plane construction step-by-step.',
               '<div class="miller-inputs"><div class="miller-input-group"><label>h:</label><input type="number" id="miller-h" class="miller-num-input" value="1" min="-5" max="5"></div><div class="miller-input-group"><label>k:</label><input type="number" id="miller-k" class="miller-num-input" value="1" min="-5" max="5"></div><div class="miller-input-group"><label>l:</label><input type="number" id="miller-l" class="miller-num-input" value="1" min="-5" max="5"></div><button id="miller-animate-btn" class="btn btn-primary" style="margin-left:auto;">Animate Plane</button></div>',
               '<div class="miller-presets"><button class="miller-preset-btn" data-h="1" data-k="0" data-l="0">(1 0 0)</button><button class="miller-preset-btn" data-h="1" data-k="1" data-l="0">(1 1 0)</button><button class="miller-preset-btn" data-h="1" data-k="1" data-l="1">(1 1 1)</button><button class="miller-preset-btn" data-h="2" data-k="1" data-l="0">(2 1 0)</button></div>',
+              '<div id="miller-derivation-live"></div>',
               '<strong>Steps to find Miller indices:</strong><br>1. Find intercepts of the plane on the axes<br>2. Take reciprocals of the intercepts<br>3. Clear fractions (multiply by LCM)<br>4. Enclose in parentheses (hkl)',
-              'Click the generated plane in the 3D view to see its detailed mathematical derivation in the Math tab!'],
+              'Click the generated plane in the 3D view or use the controls above to animate & calculate step-by-step!'],
               notes: 'Miller indices are universally used in crystallography. Understanding them is essential for XRD analysis, slip systems, and crystal growth.' }
         ],
         math: [
