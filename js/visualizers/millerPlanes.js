@@ -143,42 +143,92 @@ export class MillerPlaneVisualizer {
     }
 
     /**
-     * Animate plane creation step by step
+     * Animate plane creation step by step smoothly using the render loop
      */
     animatePlaneCreation(h, k, l, a = 2, onComplete = null) {
         this.clear();
-        
-        // 1. Show intercepts
-        this._showIntercepts(h, k, l, a);
-        
-        // 2. Draw lines to intercepts
-        setTimeout(() => {
-            this._drawInterceptLines(h, k, l, a);
-        }, 1000);
 
-        // 3. Fade in plane
-        setTimeout(() => {
-            this.generatePlane(h, k, l, a, false);
-            // Start at 0 opacity and fade in
-            this.planeGroup.children[0].material.opacity = 0;
-            this.planeGroup.children[1].material.opacity = 0;
+        // Prepare elements but hide them initially
+        this._prepareInterceptMarkers(h, k, l, a);
+        this._prepareInterceptLines(h, k, l, a);
+        this.generatePlane(h, k, l, a, false);
+        
+        // Set initial states
+        this.interceptMarkers.children.forEach(m => m.scale.set(0.001, 0.001, 0.001));
+        
+        // Lines: we'll animate their drawing by changing their geometry dynamically
+        const lineTargets = [];
+        this.interceptLines.children.forEach(line => {
+            const positions = line.geometry.attributes.position.array;
+            const targetPos = new THREE.Vector3(positions[3], positions[4], positions[5]);
+            lineTargets.push(targetPos);
+            // reset to origin
+            positions[3] = 0; positions[4] = 0; positions[5] = 0;
+            line.geometry.attributes.position.needsUpdate = true;
+            line.computeLineDistances();
+        });
+
+        // Plane
+        const planeMesh = this.planeGroup.children[0];
+        const planeBorder = this.planeGroup.children[1];
+        if (planeMesh && planeBorder) {
+            planeMesh.material.opacity = 0;
+            planeBorder.material.opacity = 0;
+        }
+
+        // Animation state
+        let time = 0;
+        
+        this.sm.addAnimation('millerAnim', (delta) => {
+            time += delta;
             
-            let opacity = 0;
-            const fadeIn = () => {
-                opacity += 0.02;
-                if (opacity <= 0.35) {
-                    this.planeGroup.children[0].material.opacity = opacity;
-                    this.planeGroup.children[1].material.opacity = opacity * 2.2;
-                    requestAnimationFrame(fadeIn);
-                } else if (onComplete) {
-                    onComplete();
+            // Phase 1: 0 - 0.5s -> Grow markers
+            if (time < 0.8) {
+                const progress = Math.min(time / 0.5, 1.0);
+                const easeOutBack = t => {
+                    const c1 = 1.70158;
+                    const c3 = c1 + 1;
+                    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+                };
+                const scale = Math.max(0.001, easeOutBack(progress));
+                this.interceptMarkers.children.forEach(m => m.scale.set(scale, scale, scale));
+            }
+
+            // Phase 2: 0.8 - 1.5s -> Draw lines
+            if (time > 0.8 && time < 1.8) {
+                const progress = Math.min((time - 0.8) / 0.7, 1.0);
+                const easeOutQuad = t => t * (2 - t);
+                const p = easeOutQuad(progress);
+                
+                this.interceptLines.children.forEach((line, i) => {
+                    const target = lineTargets[i];
+                    const positions = line.geometry.attributes.position.array;
+                    positions[3] = target.x * p;
+                    positions[4] = target.y * p;
+                    positions[5] = target.z * p;
+                    line.geometry.attributes.position.needsUpdate = true;
+                    line.computeLineDistances();
+                });
+            }
+
+            // Phase 3: 1.8 - 2.8s -> Fade in plane
+            if (time > 1.8) {
+                const progress = Math.min((time - 1.8) / 1.0, 1.0);
+                if (planeMesh && planeBorder) {
+                    planeMesh.material.opacity = progress * 0.35;
+                    planeBorder.material.opacity = progress * 0.8;
                 }
-            };
-            fadeIn();
-        }, 2000);
+            }
+
+            // Completion
+            if (time > 2.8) {
+                this.sm.removeAnimation('millerAnim');
+                if (onComplete) onComplete();
+            }
+        });
     }
 
-    _showIntercepts(h, k, l, a) {
+    _prepareInterceptMarkers(h, k, l, a) {
         this.interceptMarkers = new THREE.Group();
         
         const intercepts = [
@@ -186,37 +236,25 @@ export class MillerPlaneVisualizer {
             k !== 0 ? a / (2 * Math.abs(k)) : Infinity,
             l !== 0 ? a / (2 * Math.abs(l)) : Infinity
         ];
-
         const signs = [h >= 0 ? 1 : -1, k >= 0 ? 1 : -1, l >= 0 ? 1 : -1];
-        const colors = [0xff4444, 0x44ff44, 0x4444ff]; // x, y, z
+        const colors = [0xff4444, 0x44ff44, 0x4444ff];
 
         for (let i = 0; i < 3; i++) {
             if (intercepts[i] !== Infinity) {
-                const markerGeo = new THREE.SphereGeometry(0.12, 16, 16);
-                const markerMat = new THREE.MeshBasicMaterial({ color: colors[i] });
-                const marker = new THREE.Mesh(markerGeo, markerMat);
-                
+                const marker = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.12, 16, 16),
+                    new THREE.MeshBasicMaterial({ color: colors[i] })
+                );
                 const pos = [0, 0, 0];
                 pos[i] = intercepts[i] * signs[i];
-                marker.position.set(pos[0], pos[1], pos[2]);
-                
-                // Add pulse animation
-                let scale = 0;
-                const animateMarker = () => {
-                    scale += (1 - scale) * 0.1;
-                    marker.scale.set(scale, scale, scale);
-                    if (scale < 0.99) requestAnimationFrame(animateMarker);
-                };
-                animateMarker();
-                
+                marker.position.set(...pos);
                 this.interceptMarkers.add(marker);
             }
         }
-        
         this.sm.scene.add(this.interceptMarkers);
     }
 
-    _drawInterceptLines(h, k, l, a) {
+    _prepareInterceptLines(h, k, l, a) {
         this.interceptLines = new THREE.Group();
         
         const intercepts = [
@@ -224,20 +262,17 @@ export class MillerPlaneVisualizer {
             k !== 0 ? a / (2 * Math.abs(k)) : Infinity,
             l !== 0 ? a / (2 * Math.abs(l)) : Infinity
         ];
-
         const signs = [h >= 0 ? 1 : -1, k >= 0 ? 1 : -1, l >= 0 ? 1 : -1];
         
-        // Find valid intercept points
         const points = [];
         for (let i = 0; i < 3; i++) {
             if (intercepts[i] !== Infinity) {
                 const pos = [0, 0, 0];
                 pos[i] = intercepts[i] * signs[i];
-                points.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
+                points.push(new THREE.Vector3(...pos));
             }
         }
         
-        // Draw dashed lines from origin to intercepts
         const lineMat = new THREE.LineDashedMaterial({
             color: 0xffdd44,
             dashSize: 0.1,
@@ -247,12 +282,11 @@ export class MillerPlaneVisualizer {
         });
         
         points.forEach(p => {
-            const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), p]);
+            const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), p.clone()]);
             const line = new THREE.Line(geo, lineMat);
             line.computeLineDistances();
             this.interceptLines.add(line);
         });
-        
         this.sm.scene.add(this.interceptLines);
     }
 
