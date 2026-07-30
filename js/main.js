@@ -4,6 +4,7 @@ import { SceneManager } from './scene.js';
 import { buildModuleList, buildRoadmap, buildQuickGrid, renderModuleContent, getModuleContent, MODULES } from './navigation.js';
 import { CrystalVisualizer } from './crystals/crystalSystems.js';
 import { QuizEngine } from './quiz/quizEngine.js';
+import { CrystalBuilder } from './animations/builder.js';
 import * as THREE from 'three';
 
 class CrystalLensApp {
@@ -269,7 +270,89 @@ class CrystalLensApp {
                     opt.addEventListener('click', () => this._handlePracticeAnswer(opt));
                 });
             }
+
+            // Bind Miller interactive elements if on Module 11 Learn Tab
+            if (this.currentModuleId === 11 && tab === 'learn') {
+                this._setupMillerInteractions();
+            }
+
+            // Bind Coordination counting if on Module 9 Learn Tab
+            if (this.currentModuleId === 9 && tab === 'learn') {
+                this._setupCoordinationInteractions();
+            }
+
+            // Bind Layer Builder if on Modules 4, 5, 6 Learn Tab
+            if ([4, 5, 6].includes(this.currentModuleId) && tab === 'learn') {
+                this._setupBuilderInteractions();
+            }
         }, 200);
+    }
+
+    _setupMillerInteractions() {
+        const animateBtn = document.getElementById('miller-animate-btn');
+        if (animateBtn) {
+            animateBtn.addEventListener('click', () => {
+                const h = parseInt(document.getElementById('miller-h').value) || 0;
+                const k = parseInt(document.getElementById('miller-k').value) || 0;
+                const l = parseInt(document.getElementById('miller-l').value) || 0;
+                
+                if (h === 0 && k === 0 && l === 0) {
+                    alert('Miller indices cannot be all zero.');
+                    return;
+                }
+
+                if (this.moduleScene && this.crystalVis.millerPlanes) {
+                    // Start the plane creation animation
+                    this.crystalVis.millerPlanes.animatePlaneCreation(h, k, l);
+                }
+            });
+        }
+
+        // Preset buttons
+        document.querySelectorAll('.miller-preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const h = parseInt(e.target.dataset.h);
+                const k = parseInt(e.target.dataset.k);
+                const l = parseInt(e.target.dataset.l);
+                
+                document.getElementById('miller-h').value = h;
+                document.getElementById('miller-k').value = k;
+                document.getElementById('miller-l').value = l;
+                
+                if (this.moduleScene && this.crystalVis.millerPlanes) {
+                    this.crystalVis.millerPlanes.animatePlaneCreation(h, k, l);
+                }
+            });
+        });
+    }
+
+    _setupCoordinationInteractions() {
+        const resetBtn = document.getElementById('coord-reset-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (this.crystalVis && typeof this.crystalVis.resetCoordinationCount === 'function') {
+                    this.crystalVis.resetCoordinationCount();
+                }
+            });
+        }
+    }
+
+    _setupBuilderInteractions() {
+        const buildFccBtn = document.getElementById('build-fcc-btn');
+        const buildBccBtn = document.getElementById('build-bcc-btn');
+        const buildHcpBtn = document.getElementById('build-hcp-btn');
+
+        const handleBuild = (type) => {
+            if (!this.moduleScene) return;
+            const builder = new CrystalBuilder(this.moduleScene);
+            if (type === 'fcc') builder.buildFCC();
+            else if (type === 'bcc') builder.buildBCC();
+            else if (type === 'hcp') builder.buildHCP();
+        };
+
+        if (buildFccBtn) buildFccBtn.addEventListener('click', () => handleBuild('fcc'));
+        if (buildBccBtn) buildBccBtn.addEventListener('click', () => handleBuild('bcc'));
+        if (buildHcpBtn) buildHcpBtn.addEventListener('click', () => handleBuild('hcp'));
     }
 
     _handlePracticeAnswer(optionEl) {

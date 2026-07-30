@@ -312,7 +312,8 @@ function _buildAllContent() {
               paragraphs: ['The Face-Centered Cubic (FCC) structure has atoms at each corner and at the center of each face of the cube.',
               '<strong>Key Properties:</strong><br>\u2022 Atoms per unit cell: 4<br>\u2022 Coordination Number: 12<br>\u2022 APF: 0.74 (theoretical maximum for equal spheres)<br>\u2022 Nearest neighbor distance: a sqrt2 / 2<br>\u2022 Atomic radius: r = a sqrt2 / 4',
               'FCC is one of the most common crystal structures in metals: Al, Cu, Au, Ag, Ni, Pt, and many more.',
-              'The close-packed planes are the {111} family, which are the slip planes in FCC metals. The stacking sequence is ABCABC...'],
+              'The close-packed planes are the {111} family, which are the slip planes in FCC metals. The stacking sequence is ABCABC...',
+              '<button id="build-fcc-btn" class="btn btn-primary" style="margin-top:10px;"><i class="fas fa-layer-group"></i> Build Layer-by-Layer</button>'],
               notes: 'FCC achieves the maximum packing density possible for equal spheres. This is why it is called face-centered cubic close-packed.' }
         ],
         math: [
@@ -338,7 +339,8 @@ function _buildAllContent() {
               paragraphs: ['The Body-Centered Cubic (BCC) structure has atoms at each corner of the cube and one atom at the body center.',
               '<strong>Key Properties:</strong><br>\u2022 Atoms per unit cell: 2<br>\u2022 Coordination Number: 8<br>\u2022 APF: 0.68<br>\u2022 Nearest neighbor distance: a sqrt3 / 2<br>\u2022 Atomic radius: r = a sqrt3 / 4',
               'BCC is common in: Fe (at room temp), Cr, W, Mo, V, Nb, Ta, and alkali metals (Li, Na, K).',
-              'Unlike FCC, BCC does NOT have close-packed planes. The closest packed planes are {110}, and the slip direction is [111].'],
+              'Unlike FCC, BCC does NOT have close-packed planes. The closest packed planes are {110}, and the slip direction is [111].',
+              '<button id="build-bcc-btn" class="btn btn-primary" style="margin-top:10px;"><i class="fas fa-layer-group"></i> Build Layer-by-Layer</button>'],
               notes: 'BCC is less densely packed than FCC (68% vs 74%). This gives BCC metals different mechanical properties.' }
         ],
         math: [
@@ -365,7 +367,8 @@ function _buildAllContent() {
               '<strong>Key Properties:</strong><br>\u2022 Atoms per unit cell: 6<br>\u2022 Coordination Number: 12<br>\u2022 APF: 0.74<br>\u2022 Ideal c/a ratio: sqrt(8/3) ~= 1.633',
               'HCP is common in: Mg, Zn, Ti (at room T), Co, Zr, Be, and many rare-earth metals.',
               'The stacking sequence in HCP is ABABAB... The layers are close-packed hexagonally, with the third layer aligning directly above the first.',
-              'The c/a ratio deviates from ideal in real materials. For example: Mg (1.624), Zn (1.861), Ti (1.587).'],
+              'The c/a ratio deviates from ideal in real materials. For example: Mg (1.624), Zn (1.861), Ti (1.587).',
+              '<button id="build-hcp-btn" class="btn btn-primary" style="margin-top:10px;"><i class="fas fa-layer-group"></i> Build Layer-by-Layer</button>'],
               notes: 'HCP and FCC differ only in stacking sequence! Both have APF = 0.74 and CN = 12. FCC = ABCABC stacking, HCP = ABABAB stacking.' }
         ],
         math: [
@@ -439,11 +442,11 @@ function _buildAllContent() {
     // Module 9: Coordination Number
     C[9] = {
         learn: [
-            { title: 'Coordination Number (CN)',
+            { title: 'Interactive Coordination Counting',
               paragraphs: ['Coordination Number is the number of nearest neighbors surrounding an atom in a crystal structure.',
-              'CN is a fundamental descriptor of the local atomic environment and determines many physical properties.',
-              '<strong>CN by Structure:</strong><br>\u2022 Simple Cubic: 6<br>\u2022 BCC: 8<br>\u2022 FCC: 12<br>\u2022 HCP: 12<br>\u2022 Diamond Cubic: 4',
-              'Higher CN generally means: denser packing, higher melting point, higher cohesive energy.',
+              'Click the atoms in the 3D view to count the nearest neighbors sequentially!',
+              '<div class="coord-counter-ui"><div class="coord-count-display">Neighbors Found: <span id="coord-count">0</span> / 12</div><div class="coord-progress-bar"><div id="coord-progress-fill" style="width: 0%;"></div></div><button id="coord-reset-btn" class="btn btn-secondary" style="margin-top:10px;">Reset Count</button></div>',
+              '<strong>CN by Structure:</strong><br>\u2022 Simple Cubic: 6<br>\u2022 BCC: 8<br>\u2022 FCC: 12<br>\u2022 HCP: 12',
               'CN = 12 is the maximum possible for equal spheres, achieved by both FCC and HCP.'],
               notes: 'To count CN in FCC: pick any atom. In the same close-packed plane it has 6 neighbors. Three neighbors in the plane above and three in the plane below = 6 + 3 + 3 = 12.' }
         ],
@@ -489,18 +492,16 @@ function _buildAllContent() {
     // Module 11: Miller Indices
     C[11] = {
         learn: [
-            { title: 'Miller Indices',
-              paragraphs: ['Miller indices are a notation system used to describe crystallographic planes and directions.',
-              'A plane is denoted as (hkl), where h, k, l are integers that are the reciprocals of the fractional intercepts.',
+            { title: 'Interactive Miller Indices',
+              paragraphs: ['Use the controls below to input Miller indices (h, k, l) and watch the plane construction step-by-step.',
+              '<div class="miller-inputs"><div class="miller-input-group"><label>h:</label><input type="number" id="miller-h" class="miller-num-input" value="1" min="-5" max="5"></div><div class="miller-input-group"><label>k:</label><input type="number" id="miller-k" class="miller-num-input" value="1" min="-5" max="5"></div><div class="miller-input-group"><label>l:</label><input type="number" id="miller-l" class="miller-num-input" value="1" min="-5" max="5"></div><button id="miller-animate-btn" class="btn btn-primary" style="margin-left:auto;">Animate Plane</button></div>',
+              '<div class="miller-presets"><button class="miller-preset-btn" data-h="1" data-k="0" data-l="0">(1 0 0)</button><button class="miller-preset-btn" data-h="1" data-k="1" data-l="0">(1 1 0)</button><button class="miller-preset-btn" data-h="1" data-k="1" data-l="1">(1 1 1)</button><button class="miller-preset-btn" data-h="2" data-k="1" data-l="0">(2 1 0)</button></div>',
               '<strong>Steps to find Miller indices:</strong><br>1. Find intercepts of the plane on the axes<br>2. Take reciprocals of the intercepts<br>3. Clear fractions (multiply by LCM)<br>4. Enclose in parentheses (hkl)',
-              'Negative intercepts are denoted with a bar over the number, e.g., (1-bar-00) means the plane intersects the negative x-axis.',
-              'The direction perpendicular to plane (hkl) is given by [hkl] (same indices in square brackets).'],
+              'Click the generated plane in the 3D view to see its detailed mathematical derivation in the Math tab!'],
               notes: 'Miller indices are universally used in crystallography. Understanding them is essential for XRD analysis, slip systems, and crystal growth.' }
         ],
         math: [
-            { label: '1. Finding Miller Indices', content: 'Example: Plane intercepts at x = a/2, y = a/3, z = infinity<br>Step 1: Intercepts: a/2, a/3, infinity<br>Step 2: Reciprocals: 2/a, 3/a, 0 -> 2, 3, 0<br>Step 3: Clear fractions: (230)<br>Step 4: Miller indices: <strong>(230)</strong>' },
-            { label: '2. d-spacing (Cubic)', content: 'd_hkl = a / sqrt(h^2 + k^2 + l^2)' },
-            { label: '3. Angle between planes (Cubic)', content: 'cos phi = (h1h2 + k1k2 + l1l2) / (sqrt(h1^2+k1^2+l1^2) x sqrt(h2^2+k2^2+l2^2))' }
+            { label: 'Interactive Derivation', content: '<div id="miller-step-animator"></div><p style="text-align:center; margin-top:10px; font-size:0.9em; color:var(--text-tertiary);">Tip: Generate a plane in the Learn tab, then click on it to see its derivation here.</p>' }
         ],
         practice: [
             { question: 'What does the Miller index (hkl) represent?', options: ['A direction', 'A plane', 'A point', 'A bond'], correct: 1 },

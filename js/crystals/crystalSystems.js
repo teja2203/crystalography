@@ -1,5 +1,7 @@
 /* ===== CrystalLens Crystal Visualizer ===== */
 import * as THREE from 'three';
+import { MillerPlaneVisualizer } from '../visualizers/millerPlanes.js';
+import { DefectVisualizer } from '../visualizers/defects.js';
 
 /**
  * CrystalVisualizer — generates all 3D crystal structure visualizations.
@@ -11,6 +13,8 @@ export class CrystalVisualizer {
         // Geometry cache for performance optimization
         this._geoCache = new Map();
         this._matCache = new Map();
+        this.millerPlanes = new MillerPlaneVisualizer();
+        this.defectVisualizer = new DefectVisualizer();
     }
 
     _getCachedGeo(type, params) {
@@ -749,8 +753,14 @@ export class CrystalVisualizer {
         const group = new THREE.Group();
         const a = 1;
         const r = 0.25;
-        const color = 0x00d4ff;
-        const nnColor = 0xff6b9d;
+        const color = 0x555555; // default uncounted color
+        const nnColor = 0xff6b9d; // counted color
+
+        // State for tracking
+        this._coordCount = 0;
+        this._coordMax = 12;
+        this._coordAtoms = [];
+        this._coordBonds = [];
 
         // Central atom
         const center = this._quickAtom(new THREE.Vector3(0, 0, 0), r * 1.3, 0xff4444, true);
@@ -762,15 +772,52 @@ export class CrystalVisualizer {
             [a/2, 0, a/2], [-a/2, 0, a/2], [a/2, 0, -a/2], [-a/2, 0, -a/2],
             [0, a/2, a/2], [0, -a/2, a/2], [0, a/2, -a/2], [0, -a/2, -a/2]
         ];
-        nnPositions.forEach(pos => group.add(this._quickAtom(new THREE.Vector3(pos[0], pos[1], pos[2]), r, nnColor)));
 
-        // Bonds from center to each neighbor
-        nnPositions.forEach(pos => {
+        nnPositions.forEach((pos, idx) => {
+            const atom = this._quickAtom(new THREE.Vector3(pos[0], pos[1], pos[2]), r, color);
+            // Setup click interaction
+            sm.addClickable(atom, (clickedMesh) => {
+                if (clickedMesh.userData.counted) return; // already counted
+                
+                clickedMesh.userData.counted = true;
+                clickedMesh.material.color.setHex(nnColor);
+                
+                // Light up the corresponding bond
+                const bond = this._coordBonds[idx];
+                if (bond) {
+                    bond.material.color.setHex(nnColor);
+                    bond.material.opacity = 0.8;
+                }
+
+                // Animate pop
+                const popAnimId = 'pop_' + Math.random();
+                let pt = 0;
+                sm.addAnimation(popAnimId, (delta) => {
+                    pt += delta * 4;
+                    if (pt <= 1) {
+                        const s = 1 + 0.3 * Math.sin(pt * Math.PI);
+                        clickedMesh.scale.setScalar(s);
+                    } else {
+                        clickedMesh.scale.setScalar(1);
+                        sm.removeAnimation(popAnimId);
+                    }
+                });
+
+                this._coordCount++;
+                this._updateCoordinationUI();
+            });
+            this._coordAtoms.push(atom);
+            group.add(atom);
+
+            // Bond from center to neighbor
             const bond = sm.createBond(
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(pos[0], pos[1], pos[2]),
-                0.03, nnColor
+                0.03, color
             );
+            bond.material.transparent = true;
+            bond.material.opacity = 0.2; // Dim until clicked
+            this._coordBonds.push(bond);
             group.add(bond);
         });
 
@@ -779,8 +826,43 @@ export class CrystalVisualizer {
 
         sm.add('coordination', group);
         sm.camera.position.set(3, 2, 4);
-        sm.controls.autoRotate = true;
+        sm.controls.autoRotate = false; // Easier to click when not rotating
+
+        // Reset UI initially
+        this._updateCoordinationUI();
+
         return group;
+    }
+
+    resetCoordinationCount() {
+        this._coordCount = 0;
+        const color = 0x555555;
+        this._coordAtoms.forEach(atom => {
+            atom.userData.counted = false;
+            atom.material.color.setHex(color);
+        });
+        this._coordBonds.forEach(bond => {
+            bond.material.color.setHex(color);
+            bond.material.opacity = 0.2;
+        });
+        this._updateCoordinationUI();
+    }
+
+    _updateCoordinationUI() {
+        const countEl = document.getElementById('coord-count');
+        const fillEl = document.getElementById('coord-progress-fill');
+        if (countEl) {
+            countEl.textContent = this._coordCount;
+        }
+        if (fillEl) {
+            const pct = (this._coordCount / this._coordMax) * 100;
+            fillEl.style.width = pct + '%';
+            if (this._coordCount === this._coordMax) {
+                fillEl.style.background = 'var(--success)';
+            } else {
+                fillEl.style.background = 'var(--accent-primary)';
+            }
+        }
     }
 
     /**
@@ -816,53 +898,9 @@ export class CrystalVisualizer {
         const group = new THREE.Group();
         const a = 1.5;
 
-        // Unit cell
+        // Base unit cell
         const cell = sm.createUnitCell(a, 0x4488aa, 0.4);
         group.add(cell);
-
-        // (100) plane
-        const planeGeo = new THREE.PlaneGeometry(a, a);
-        const planeMat = new THREE.MeshPhysicalMaterial({
-            color: 0x00d4ff,
-            transparent: true,
-            opacity: 0.3,
-            side: THREE.DoubleSide,
-            roughness: 0.5
-        });
-        const plane100 = new THREE.Mesh(planeGeo, planeMat);
-        plane100.position.set(a/2, 0, 0);
-        plane100.rotation.y = Math.PI / 2;
-        group.add(plane100);
-
-        // (110) plane
-        const plane110 = new THREE.Mesh(
-            new THREE.PlaneGeometry(a * Math.SQRT2, a),
-            new THREE.MeshPhysicalMaterial({
-                color: 0x34d399,
-                transparent: true,
-                opacity: 0.3,
-                side: THREE.DoubleSide,
-                roughness: 0.5
-            })
-        );
-        plane110.position.set(0, 0, 0);
-        plane110.rotation.y = Math.PI / 4;
-        group.add(plane110);
-
-        // (111) plane
-        const plane111Geo = new THREE.PlaneGeometry(a * 1.5, a * 1.5);
-        const plane111Mat = new THREE.MeshPhysicalMaterial({
-            color: 0xff6b9d,
-            transparent: true,
-            opacity: 0.3,
-            side: THREE.DoubleSide
-        });
-        const plane111 = new THREE.Mesh(plane111Geo, plane111Mat);
-        // (111) plane passes through (a,a,a) with normal [1,1,1]
-        const normal = new THREE.Vector3(1, 1, 1).normalize();
-        plane111.position.set(a/3, a/3, a/3);
-        plane111.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-        group.add(plane111);
 
         // Atoms at corners for reference
         const corners = [
@@ -874,9 +912,18 @@ export class CrystalVisualizer {
             group.add(atom);
         });
 
-        sm.add('miller', group);
+        sm.add('miller-base', group);
         sm.camera.position.set(3, 2.5, 4);
-        sm.controls.autoRotate = true;
+        sm.controls.target.set(0, 0, 0);
+        sm.controls.autoRotate = false; // Easier to interact when not rotating
+
+        // Start with default (1 1 1) plane
+        setTimeout(() => {
+            if (this.millerPlanes) {
+                this.millerPlanes.animatePlaneCreation(1, 1, 1);
+            }
+        }, 500);
+
         return group;
     }
 
@@ -924,52 +971,43 @@ export class CrystalVisualizer {
      */
     createDefectsDemo(sm) {
         const group = new THREE.Group();
-        const a = 1;
-        const r = 0.2;
-
-        // Perfect lattice (left side)
-        for (let x = -1; x <= 1; x++) {
-            for (let y = -1; y <= 1; y++) {
-                for (let z = -1; z <= 1; z++) {
-                    const atom = this._quickAtom(new THREE.Vector3(x * a - 1.5, y * a, z * a), r, 0x00d4ff);
-                    group.add(atom);
-                }
-            }
+        
+        // Ensure old animations are cleared
+        if (this.defectVisualizer) {
+            this.defectVisualizer.clear(sm);
         }
 
-        // Vacancy (missing atom at center)
-        for (let x = -1; x <= 1; x++) {
-            for (let y = -1; y <= 1; y++) {
-                for (let z = -1; z <= 1; z++) {
-                    if (x === 0 && y === 0 && z === 0) continue; // Vacancy
-                    const atom = this._quickAtom(new THREE.Vector3(x * a + 1.5, y * a, z * a), r, 0x00d4ff);
-                    group.add(atom);
-                }
-            }
-        }
-        // Vacancy marker
-        const vacancyGeo = new THREE.RingGeometry(0.15, 0.25, 16);
-        const vacancyMat = new THREE.MeshBasicMaterial({ color: 0xff4444, side: THREE.DoubleSide });
-        const vacancy = new THREE.Mesh(vacancyGeo, vacancyMat);
-        vacancy.position.set(1.5, 0, 0);
-        group.add(vacancy);
+        const spacing = 4.0; // Distance between lattices
 
-        // Interstitial (extra atom) - right side
-        for (let x = -1; x <= 1; x++) {
-            for (let y = -1; y <= 1; y++) {
-                for (let z = -1; z <= 1; z++) {
-                    const atom = this._quickAtom(new THREE.Vector3(x * a + 4.5, y * a, z * a), r, 0x00d4ff);
-                    group.add(atom);
-                }
-            }
-        }
-        // Interstitial atom
-        const interstitial = this._quickAtom(new THREE.Vector3(4.5, 0.5, 0.5), r * 0.7, 0xff4444, true);
-        group.add(interstitial);
+        // 1. Vacancy (Left)
+        const lattice1 = this.defectVisualizer.createPerfectLattice(sm, 1, 1, 0x00d4ff);
+        lattice1.position.x = -spacing;
+        group.add(lattice1);
+        setTimeout(() => {
+            this.defectVisualizer.animateVacancy(sm, lattice1, new THREE.Vector3(0, 0, 0), 0x00d4ff);
+        }, 1000);
+
+        // 2. Interstitial (Center)
+        const lattice2 = this.defectVisualizer.createPerfectLattice(sm, 1, 1, 0x00d4ff);
+        lattice2.position.x = 0;
+        group.add(lattice2);
+        setTimeout(() => {
+            this.defectVisualizer.animateInterstitial(sm, lattice2, new THREE.Vector3(0.5, 0.5, 0.5), 0xff6b9d);
+        }, 1500);
+
+        // 3. Frenkel Defect (Right)
+        const lattice3 = this.defectVisualizer.createPerfectLattice(sm, 1, 1, 0x00d4ff);
+        lattice3.position.x = spacing;
+        group.add(lattice3);
+        setTimeout(() => {
+            this.defectVisualizer.animateFrenkel(sm, lattice3, new THREE.Vector3(0, 0, 0), 1.5);
+        }, 2000);
 
         sm.add('defects', group);
-        sm.camera.position.set(1, 2, 6);
+        sm.camera.position.set(0, 3, 10);
+        sm.controls.target.set(0, 0, 0);
         sm.controls.autoRotate = true;
+        sm.controls.autoRotateSpeed = 1.0;
         return group;
     }
 

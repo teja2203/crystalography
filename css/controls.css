@@ -444,3 +444,201 @@ input[type="radio"] {
     border-color: var(--accent);
     box-shadow: 0 0 8px var(--accent-glow);
 }
+
+/* Step Animator Controls */
+.step-animator-container {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: var(--shadow-md);
+}
+
+.step-animator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.step-animator-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.step-animator-content {
+    min-height: 120px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px 0;
+    scroll-behavior: smooth;
+}
+
+.playback-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.playback-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.playback-btn:hover:not(:disabled) {
+    background: var(--glass-highlight);
+    color: var(--accent);
+    border-color: var(--border-hover);
+}
+
+.playback-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.playback-btn.play-primary {
+    width: 44px;
+    height: 44px;
+    background: var(--accent-dim);
+    border-color: var(--border-accent);
+    color: var(--accent);
+}
+
+.playback-btn.play-primary:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--text-inverse);
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* Interactive Miller Inputs */
+.miller-inputs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: var(--bg-tertiary);
+    padding: 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.miller-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.miller-input-group label {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.miller-num-input {
+    width: 48px;
+    padding: 6px 4px;
+    text-align: center;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+}
+
+.miller-num-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.miller-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.miller-preset-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.miller-preset-btn:hover {
+    background: var(--glass-highlight);
+    color: var(--accent);
+    border-color: var(--border-accent);
+}
+
+/* Live Element Picker */
+.element-picker {
+    width: 100%;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 16px;
+}
+
+/* Coordination Counter UI */
+.coord-counter-ui {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin: 16px 0;
+    text-align: center;
+}
+
+.coord-count-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.coord-count-display span {
+    color: var(--accent);
+    font-size: 1.4rem;
+    font-family: var(--font-mono);
+}
+
+.coord-progress-bar {
+    height: 8px;
+    background: var(--bg-elevated);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+#coord-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease, background 0.3s ease;
+}
