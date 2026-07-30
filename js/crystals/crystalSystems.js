@@ -895,14 +895,15 @@ export class CrystalVisualizer {
      * Miller indices demo
      */
     createMillerIndicesDemo(sm) {
+        this.millerPlanes = new MillerPlaneVisualizer(sm);
         const group = new THREE.Group();
-        const a = 1.5;
+        const a = 2;
 
         // Base unit cell
         const cell = sm.createUnitCell(a, 0x4488aa, 0.4);
         group.add(cell);
 
-        // Atoms at corners for reference
+        // Corner atoms for reference
         const corners = [
             [-a/2,-a/2,-a/2],[a/2,-a/2,-a/2],[-a/2,a/2,-a/2],[-a/2,-a/2,a/2],
             [a/2,a/2,-a/2],[a/2,-a/2,a/2],[-a/2,a/2,a/2],[a/2,a/2,a/2]
@@ -913,16 +914,16 @@ export class CrystalVisualizer {
         });
 
         sm.add('miller-base', group);
-        sm.camera.position.set(3, 2.5, 4);
+        sm.camera.position.set(3.5, 2.8, 4.5);
         sm.controls.target.set(0, 0, 0);
         sm.controls.autoRotate = false; // Easier to interact when not rotating
 
-        // Start with default (1 1 1) plane
+        // Start with default (1 0 0) plane animation
         setTimeout(() => {
             if (this.millerPlanes) {
-                this.millerPlanes.animatePlaneCreation(1, 1, 1);
+                this.millerPlanes.animatePlaneCreation(1, 0, 0, a);
             }
-        }, 500);
+        }, 300);
 
         return group;
     }

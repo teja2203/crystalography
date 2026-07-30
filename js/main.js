@@ -291,6 +291,10 @@ class CrystalLensApp {
     }
 
     _setupMillerInteractions() {
+        if (this.crystalVis && this.crystalVis.millerPlanes && this.moduleScene) {
+            this.crystalVis.millerPlanes.sm = this.moduleScene;
+        }
+
         const updateDerivation = (h, k, l) => {
             const intercepts = [
                 h !== 0 ? `a/${h}` : '∞',
